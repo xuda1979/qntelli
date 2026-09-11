@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "project": "qntelli",
+  "objective_metric": {
+    "reusable_core_skills": ">=5",
+    "workflow_skill_coverage": ">=50%",
+    "autonomous_completion": ">=60%",
+    "manual_step_reduction": ">=60%",
+    "experiment_types_end_to_end": ">=2"
+  },
+  "core_skills": [
+    {
+      "id": "qc.algorithm.design",
+      "name": "Quantum Algorithm Design",
+      "category": "planning",
+      "inputs": ["task_input", "sdk", "qubit_budget"],
+      "outputs": ["circuit_spec", "resource_estimate"],
+      "verifiable": true,
+      "description": "Generate a correct, runnable quantum algorithm (Bell/GHZ/QFT/Grover/DJ/PE) with a verified one-time pass contract."
+    },
+    {
+      "id": "qc.circuit.transpile",
+      "name": "Circuit Transpilation & Resource Estimation",
+      "category": "machine",
+      "inputs": ["circuit_spec", "backend_basis", "coupling_map"],
+      "outputs": ["transpiled_circuit", "gate_counts", "depth"],
+      "verifiable": true,
+      "description": "Compile to a target basis set; report CNOT count, depth, and shot budget."
+    },
+    {
+      "id": "qc.simulate",
+      "name": "Simulation & Statevector Check",
+      "category": "machine",
+      "inputs": ["circuit", "seed", "shots"],
+      "outputs": ["counts", "statevector", "expectation_values"],
+      "verifiable": true,
+      "description": "Run on a simulator (default.qubit / Aer / cirq.Simulator) with pinned seeds; produce reproducible samples."
+    },
+    {
+      "id": "qc.measure.calibrate",
+      "name": "Measurement Calibration & Error Mitigation",
+      "category": "analysis",
+      "inputs": ["raw_counts", "calibration_matrix", "mitigation"],
+      "outputs": ["corrected_counts", "error_bars"],
+      "verifiable": true,
+      "description": "Apply measurement-error mitigation, ZNE, or Pauli twirling; report corrected observables."
+    },
+    {
+      "id": "qc.validate.reference",
+      "name": "Analytic Reference Validation",
+      "category": "validation",
+      "inputs": ["result", "reference"],
+      "outputs": ["pass_fail", "delta"],
+      "verifiable": true,
+      "description": "Compare measured/statevector results against analytic references; emit PASS/FAIL with tolerance."
+    },
+    {
+      "id": "qc.validate.reproducibility",
+      "name": "Reproducibility & Traceability Check",
+      "category": "validation",
+      "inputs": ["run_config", "state_log", "raw_data"],
+      "outputs": ["reproducible", "trace"],
+      "verifiable": true,
+      "description": "Verify pinned seeds/versions and a complete, replyable state log for the experiment run."
+    },
+    {
+      "id": "qc.experiment.report",
+      "name": "Experiment Report Generation",
+      "category": "reporting",
+      "inputs": ["analysis", "plots", "verdict"],
+      "outputs": ["report_markdown", "artifacts"],
+      "verifiable": true,
+      "description": "Produce a reproducible report with config, raw data, analysis, and PASS/FAIL verdict per stage."
+    },
+    {
+      "id": "qc.hardware.bind",
+      "name": "Ion-Trap Hardware Binding",
+      "category": "machine",
+      "inputs": ["device_id", "qubit_budget", "shots"],
+      "outputs": ["device_profile", "native_gate_set", "tier_plan"],
+      "verifiable": true,
+      "description": "Bind the experiment to an ion-trap device from the model hardware standard (quantum/hardware): device profile, native gate family (gpi/gpi2/zz|ms, phasedx/zzphase, r/rxx), all-to-all coupling, credential state, and execution-tier plan (simulation/emulator/qpu)."
+    },
+    {
+      "id": "qc.hardware.execute",
+      "name": "Ion-Trap Hardware Execution",
+      "category": "machine",
+      "inputs": ["circuit", "device_id", "shots", "tier", "allow_qpu"],
+      "outputs": ["counts", "job_record", "tier"],
+      "verifiable": true,
+      "description": "Execute the circuit on the bound ion-trap device through the hardware standard's honest tier ladder: vendor-compiler emulator offline by default (Quantinuum pecos H2-1E, IonQ native-gate sampling, AQT offline sim); real QPU submission only with explicit allow_qpu=true AND credentials. Every job is appended to the jobs.jsonl ledger with a counts hash."
+    }
+  ],
+  "coverage_note": "Each core skill is an invocable, composable, verifiable unit. Skill count >= 5 required at completion."
+}

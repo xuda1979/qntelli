@@ -1,0 +1,272 @@
+[
+  {
+    "id": "bmk.bell",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "actual": {
+        "11": 0.5005,
+        "00": 0.4995
+      },
+      "expected": {
+        "00": 0.5,
+        "11": 0.5
+      },
+      "detail": "ok",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.ghz3",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "actual": {
+        "111": 0.49125,
+        "000": 0.50875
+      },
+      "expected": {
+        "000": 0.5,
+        "111": 0.5
+      },
+      "detail": "ok",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.qft3_uniform",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "actual": {
+        "000": 0.12499999999999994,
+        "001": 0.12499999999999994,
+        "010": 0.12499999999999994,
+        "011": 0.12499999999999994,
+        "100": 0.12499999999999994,
+        "101": 0.12499999999999994,
+        "110": 0.12499999999999994,
+        "111": 0.12499999999999994
+      },
+      "expected": {
+        "000": 0.125,
+        "001": 0.125,
+        "010": 0.125,
+        "011": 0.125,
+        "100": 0.125,
+        "101": 0.125,
+        "110": 0.125,
+        "111": 0.125
+      },
+      "detail": "ok",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.dj_balanced",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "observed": true,
+      "expected": true,
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.grover1",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "actual": {
+        "001": 0.03175,
+        "110": 0.03375,
+        "100": 0.035,
+        "000": 0.03425,
+        "010": 0.02775,
+        "111": 0.03375,
+        "011": 0.03125,
+        "101": 0.7725
+      },
+      "expected": {
+        "101": 0.78
+      },
+      "detail": "ok",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.expectation_z",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "observed": 0.0,
+      "expected": "|v|<0.1",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.bell_pennylane",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "actual": {
+        "00": 0.48925,
+        "11": 0.51075
+      },
+      "expected": {
+        "00": 0.5,
+        "11": 0.5
+      },
+      "detail": "ok",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.ghz_cirq",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "actual": {
+        "111": 0.50475,
+        "000": 0.49525
+      },
+      "expected": {
+        "000": 0.5,
+        "111": 0.5
+      },
+      "detail": "ok",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.bernstein_vazirani",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "observed": "top=101 p=1.000",
+      "expected": "101",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.swap_test",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "observed": 0.0,
+      "expected": "P1<0.06",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.qpe",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "observed": 0.125,
+      "expected": 0.125,
+      "err": 0.0,
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.vqe",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "observed": -1.0,
+      "expected": -1.0,
+      "err": 0.0,
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.bell_cirq",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "actual": {
+        "11": 0.48725,
+        "00": 0.51275
+      },
+      "expected": {
+        "00": 0.5,
+        "11": 0.5
+      },
+      "detail": "ok",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.ghz_pennylane",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "actual": {
+        "111": 0.49775,
+        "000": 0.50225
+      },
+      "expected": {
+        "000": 0.5,
+        "111": 0.5
+      },
+      "detail": "ok",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.grover_011",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "observed": "top=011 p=0.781",
+      "expected": "011",
+      "stage": "result"
+    }
+  },
+  {
+    "id": "bmk.qft4_uniform",
+    "pass": true,
+    "mode": "golden",
+    "detail": {
+      "actual": {
+        "0000": 0.06249999999999996,
+        "0001": 0.06249999999999996,
+        "0010": 0.06249999999999996,
+        "0011": 0.06249999999999996,
+        "0100": 0.06249999999999996,
+        "0101": 0.06249999999999996,
+        "0110": 0.06249999999999996,
+        "0111": 0.06249999999999996,
+        "1000": 0.06249999999999996,
+        "1001": 0.06249999999999996,
+        "1010": 0.06249999999999996,
+        "1011": 0.06249999999999996,
+        "1100": 0.06249999999999996,
+        "1101": 0.06249999999999996,
+        "1110": 0.06249999999999996,
+        "1111": 0.06249999999999996
+      },
+      "expected": {
+        "0000": 0.0625,
+        "0001": 0.0625,
+        "0010": 0.0625,
+        "0011": 0.0625,
+        "0100": 0.0625,
+        "0101": 0.0625,
+        "0110": 0.0625,
+        "0111": 0.0625,
+        "1000": 0.0625,
+        "1001": 0.0625,
+        "1010": 0.0625,
+        "1011": 0.0625,
+        "1100": 0.0625,
+        "1101": 0.0625,
+        "1110": 0.0625,
+        "1111": 0.0625
+      },
+      "detail": "ok",
+      "stage": "result"
+    }
+  }
+]

@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>qntelli · Quantum Harness Control Center</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%236c8cff'/%3E%3Cstop offset='100%25' stop-color='%23b06cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='24' height='24' rx='6' fill='%23070a16'/%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='url(%23g)' stroke-width='2.4'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%234fe3d4'/%3E%3Ccircle cx='12' cy='4' r='1.6' fill='%236c8cff'/%3E%3Ccircle cx='20' cy='12' r='1.6' fill='%23b06cff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#070a16; --bg2:#0d1226; --panel:rgba(23,29,54,.72); --panel2:rgba(31,39,74,.78);
+  --glass:rgba(255,255,255,.04); --line:rgba(112,132,210,.18); --line2:rgba(112,132,210,.32);
+  --txt:#eef1ff; --muted:#9aa3cf; --dim:#6b74a3;
+  --accent:#6c8cff; --accent2:#b06cff; --cyan:#4fe3d4; --amber:#ffb454; --pink:#ff6bb6;
+  --green:#3ddc97; --red:#ff6b6b;
+  --radius:16px; --shadow:0 18px 50px rgba(0,0,0,.55);
+  --font:'Inter','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100vh;color:var(--txt);
+  font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{
+  background:
+    radial-gradient(1200px 800px at 85% -10%,rgba(52,72,160,.55) 0%,transparent 55%),
+    radial-gradient(1000px 700px at -10% 110%,rgba(120,60,170,.4) 0%,transparent 55%),
+    radial-gradient(700px 500px at 50% 120%,rgba(30,120,120,.25) 0%,transparent 60%),
+    var(--bg);
+  overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+button{font-family:inherit}
+#particles{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:22px 22px 90px}
+
+/* ---- top bar ---- */
+.topbar{display:flex;align-items:center;gap:16px;padding:8px 0 20px;flex-wrap:wrap}
+.logo{width:48px;height:48px;border-radius:14px;flex:none;position:relative;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;box-shadow:0 6px 24px rgba(108,140,255,.45),0 0 0 1px rgba(255,255,255,.12) inset}
+.logo::after{content:'';position:absolute;inset:-3px;border-radius:17px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));filter:blur(14px);opacity:.5;z-index:-1}
+.logo svg{width:26px;height:26px;fill:#fff}
+.title h1{margin:0;font-size:21px;letter-spacing:.3px;font-weight:800;
+  background:linear-gradient(120deg,#fff,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.title p{margin:3px 0 0;color:var(--muted);font-size:12.5px;font-weight:500}
+.pills{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-size:11.5px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);
+  background:var(--glass);color:var(--muted);backdrop-filter:blur(6px);white-space:nowrap}
+.pill b{color:var(--cyan)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.dot.g{background:var(--green);box-shadow:0 0 8px var(--green)}
+.dot.y{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+/* ---- nav ---- */
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 24px}
+.tab{padding:10px 18px;border-radius:12px;border:1px solid var(--line);cursor:pointer;
+  background:var(--glass);color:var(--muted);font-size:13.5px;font-weight:600;
+  transition:.18s;user-select:none;backdrop-filter:blur(6px);position:relative;overflow:hidden}
+.tab:hover{color:var(--txt);border-color:var(--line2);transform:translateY(-1px)}
+.tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+  border-color:transparent;box-shadow:0 6px 20px rgba(108,140,255,.4)}
+.tab.active::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--cyan),transparent)}
+
+.section{display:none;animation:fade .28s ease}
+.section.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---- cards ---- */
+.grid{display:grid;gap:16px}
+.grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+  border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);
+  backdrop-filter:blur(10px);position:relative;overflow:hidden;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(140,200,255,.5),transparent)}
+.card:hover{transform:translateY(-2px);border-color:var(--line2);
+  box-shadow:0 22px 60px rgba(0,0,0,.6)}
+.card h3{margin:0 0 14px;font-size:14px;letter-spacing:.5px;color:var(--txt);font-weight:700}
+.card h3 span{color:var(--dim);font-weight:500}
+.stat{display:flex;flex-direction:column;gap:6px}
+.stat .ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+  background:rgba(108,140,255,.14);color:var(--accent);font-size:19px;margin-bottom:2px}
+.stat .num{font-size:32px;font-weight:800;letter-spacing:-.5px;
+  background:linear-gradient(120deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .num.cyan{background:linear-gradient(120deg,var(--cyan),var(--accent));-webkit-background-clip:text;background-clip:text}
+.stat .num.green{background:linear-gradient(120deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text}
+.stat .num.amber{background:linear-gradient(120deg,var(--amber),var(--pink));-webkit-background-clip:text;background-clip:text}
+.stat .lbl{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.7px}
+.stat .sub{color:var(--dim);font-size:12px}
+
+/* ---- buttons ---- */
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--txt);
+  padding:10px 18px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;
+  transition:.15s}
+.btn:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 14px rgba(108,140,255,.2)}
+.btn:active{transform:translateY(0)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-color:transparent;color:#fff;box-shadow:0 6px 18px rgba(108,140,255,.35)}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.mini{padding:6px 13px;font-size:12px;border-radius:9px;flex:none}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+
+/* ---- forms ---- */
+select,input[type=text],textarea{background:var(--bg2);border:1px solid var(--line);
+  color:var(--txt);padding:11px 13px;border-radius:11px;font-size:13.5px;
+  font-family:inherit;outline:none;width:100%;transition:border-color .15s}
+select:focus,input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,140,255,.12)}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px;font-weight:600;letter-spacing:.3px}
+
+/* ---- tables ---- */
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--bg2);max-height:480px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{position:sticky;top:0;background:var(--panel2);color:var(--muted);text-align:left;
+  padding:11px 13px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;
+  border-bottom:1px solid var(--line);z-index:1}
+td{padding:10px 13px;border-bottom:1px solid rgba(38,47,86,.5);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.badge.pass{background:rgba(61,220,151,.14);color:var(--green)}
+.badge.fail{background:rgba(255,107,107,.14);color:var(--red)}
+.badge.info{background:rgba(108,140,255,.14);color:var(--accent)}
+
+/* ---- log viewer ---- */
+.logview{background:#05070f;border:1px solid var(--line);border-radius:12px;
+  padding:15px;font-family:var(--mono);font-size:12.5px;
+  white-space:pre-wrap;max-height:440px;overflow:auto;line-height:1.55;color:#c8d0ee}
+.logview .ok{color:var(--green)} .logview .err{color:var(--red)}
+.logview .warn{color:var(--amber)}
+.mono{font-family:var(--mono);font-size:12px;color:var(--cyan)}
+pre{font-family:var(--mono)}
+
+/* ---- spinner / toast / bar ---- */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);
+  border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--panel2);border:1px solid var(--accent);color:var(--txt);
+  padding:12px 22px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:999;
+  font-size:13.5px;font-weight:600;opacity:0;transition:.25s;backdrop-filter:blur(8px)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{border-color:var(--red)}
+.bar{height:9px;background:var(--bg2);border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.bar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:.5s;border-radius:999px}
+
+.mt{margin-top:16px}
+h2.pg{font-size:18px;margin:6px 0 16px;letter-spacing:.3px;font-weight:800;
+  display:flex;align-items:center;gap:10px}
+h2.pg::before{content:'';width:4px;height:18px;border-radius:2px;flex:none;
+  background:linear-gradient(180deg,var(--accent),var(--accent2));
+  box-shadow:0 0 12px rgba(108,140,255,.6)}
+h2.pg small{color:var(--dim);font-weight:500;font-size:13px}
+
+/* accessibility: visible keyboard focus using the ambient glow */
+:is(button,select,input,textarea,a).focus-visible:focus-visible,
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
+  outline:none;box-shadow:0 0 0 3px rgba(108,140,255,.35);
+  border-color:var(--accent)}
+.dim{color:var(--dim);font-size:12.5px}
+.flex{display:flex;gap:14px;align-items:center}
+.flex .grow{flex:1}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--glass);
+  border:1px solid var(--line);border-radius:999px;padding:8px 13px;margin:4px;
+  font-size:12px;cursor:pointer;backdrop-filter:blur(6px);transition:.15s}
+.chip:hover{border-color:var(--line2)}
+.chip.active{border-color:var(--accent);color:var(--accent);background:rgba(108,140,255,.1)}
+.chip.silent{cursor:default}
+.chip.silent:hover{border-color:var(--line)}
+
+/* ---- charts ---- */
+.chartwrap{position:relative;width:100%}
+.chartwrap canvas{width:100%;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend .k{display:inline-flex;align-items:center;gap:6px}
+.legend .sw{width:11px;height:11px;border-radius:3px}
+
+/* ---- modal ---- */
+.modal{position:fixed;inset:0;z-index:200;display:none;align-items:flex-start;justify-content:center;
+  padding:40px 20px;background:rgba(5,8,18,.72);backdrop-filter:blur(4px)}
+.modal.show{display:flex;animation:fade .2s ease}
+.modal-box{width:100%;max-width:760px;max-height:82vh;overflow:auto;background:var(--bg2);
+  border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:0}
+.modal-head{position:sticky;top:0;background:var(--panel2);padding:14px 20px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px}
+.modal-head h3{margin:0;font-size:14px;flex:1}
+.modal-close{cursor:pointer;border:none;background:var(--bg2);color:var(--muted);
+  width:30px;height:30px;border-radius:8px;font-size:16px}
+.modal-close:hover{color:var(--txt)}
+.codeview{padding:0;margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.6;
+  color:#c8d0ee;white-space:pre;overflow:auto;background:#05070f}
+.codeview .ln{display:block;padding:0 16px}
+.codeview .ln:hover{background:rgba(108,140,255,.06)}
+.codeview .gutter{color:var(--dim);display:inline-block;width:34px;user-select:none}
+
+/* ---- experiment run / replay ---- */
+.tickrow{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.tick{width:12px;height:12px;border-radius:3px}
+.tick.off{background:var(--dim);opacity:.25}
+.tick.on{background:var(--accent)}
+
+/* ---- QAS result grid ---- */
+.candgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px}
+.cand{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px}
+.cand.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.cand .cn{font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.cand .cn .badge{margin-left:auto}
+.cand .meta{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.7}
+
+@media(max-width:920px){
+  .grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr}
+  .pills{margin-left:0;width:100%}
+}
+
+/* ---- refined scrollbars (beauty polish) ---- */
+*::-webkit-scrollbar{width:11px;height:11px}
+*::-webkit-scrollbar-track{background:rgba(255,255,255,.02);border-radius:8px}
+*::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(108,140,255,.55),rgba(176,108,255,.55));
+  border-radius:8px;border:2px solid var(--bg2)}
+*::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--accent),var(--accent2))}
+*::-webkit-scrollbar-corner{background:transparent}
+
+/* ---- reduced-motion accessibility ---- */
+@media (prefers-reduced-motion: reduce){
+  .card,.tab,.btn,.chip{transition:none!important;transform:none!important}
+  .section{animation:none!important}
+  .spin{animation-duration:1.6s}
+}
+</style>
+</head>
+
+<body>
+<canvas id="particles"></canvas>
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm-3-6l2-4h3l3 4-3 8-5-8z"/></svg>
+    </div>
+    <div class="title">
+      <h1>qntelli · Quantum Harness Control Center</h1>
+      <p>multi-agent experiment orchestrator · one-enter verifier · QAS 线路寻优 · ion-trap hardware standard</p>
+    </div>
+    <div class="pills">
+      <span class="pill"><span class="dot g"></span><b id="pyver">python …</b></span>
+      <span class="pill" id="modprobe">checking…</span>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <div class="tab active" data-s="status">📊 Status</div>
+    <div class="tab" data-s="orch">🤖 Orchestrator</div>
+    <div class="tab" data-s="solver">🧠 Solver</div>
+    <div class="tab" data-s="qas">⚡ QAS 线路寻优</div>
+    <div class="tab" data-s="hw">🛰️ Hardware</div>
+    <div class="tab" data-s="exp">📚 Experience</div>
+    <div class="tab" data-s="tests">🧪 Test Suite</div>
+  </nav>
+
+  <!-- ===================== STATUS ===================== -->
+  <div class="section active" id="s-status">
+    <h2 class="pg">Harness status <small>live overview of the compute stack</small></h2>
+    <div class="grid cols-4" id="statusStats"></div>
+
+    <div class="grid cols-2 mt">
+      <div class="card">
+        <h3>Pass-rate dashboard</h3>
+        <div class="chartwrap"><canvas id="donutCv" height="180"></canvas></div>
+        <div class="legend" id="donutLegend"></div>
+      </div>
+      <div class="card">
+        <h3>Bench pass-rate trend <span>per 20-run bucket</span></h3>
+        <div class="chartwrap"><canvas id="lineCv" height="180"></canvas></div>
+        <p class="dim" id="lineNote"></p>
+      </div>
+    </div>
+
+    <div class="card mt">
+      <h3>Installed quantum SDKs <span>runtime capability</span></h3>
+      <div id="sdkProbe" class="flex"></div>
+    </div>
+
+    <div class="card mt">
+      <h3>Generated case-study reports</h3>
+      <div class="tablewrap"><table id="reportsTable">
+        <thead><tr><th>Report</th><th>Last generated</th></tr></thead><tbody></tbody>
+      </table></div>
+    </div>
+
+    <div class="card mt">
+      <h3>Latest validator bench run</h3>
+      <div id="benchSummary" class="flex"></div>
+      <div class="btnrow"><button class="btn primary" id="btnBench">Run validator bench</button></div>
+      <div class="logview" id="benchLog">…</div>
+    </div>
+  </div>
+
+  <!-- ===================== ORCHESTRATOR ===================== -->
+  <div class="section" id="s-orch">
+    <h2 class="pg">Multi-agent experiment orchestrator <small>real execution + verification + .docx report</small></h2>
+    <div class="card">
+      <h3>Run a full experiment chain</h3>
+      <div class="flex">
+        <div class="grow"><label>Experiment</label>
+          <select id="orchExp">
+            <option value="bell">Bell state</option>
+            <option value="ghz">GHZ (3-qubit)</option>
+            <option value="qft">QFT (3-qubit)</option>
+            <option value="grover">Grover search (3-qubit, |101&gt;)</option>
+            <option value="optimization">Optimization / QAOA style</option>
+            <option value="ml">Quantum ML style</option>
+          </select>
+        </div>
+      </div>
+      <div class="btnrow">
+        <button class="btn primary" id="btnOrch">Run orchestrator</button>
+        <button class="btn" id="btnReporch">Refresh logs</button>
+      </div>
+      <div id="orchSummaryCards"></div>
+      <div class="logview" id="orchLog">Select an experiment and run the orchestrator.</div>
+    </div>
+    <div class="card mt">
+      <h3>Replay a recorded state log</h3>
+      <div class="flex"><div class="grow"><select id="logSelect"></select></div>
+      <button class="btn" id="btnReplay">Replay</button></div>
+      <label>or specify a path under the project root :</label>
+      <input type="text" id="logPath" placeholder="state_log.jsonl.optimization">
+      <div class="logview mt" id="replayView">…</div>
+    </div>
+  </div>
+
+  <!-- ===================== SOLVER ===================== -->
+  <div class="section" id="s-solver">
+    <h2 class="pg">One-enter quantum solver <small>golden bank · optional model-backed custom solves</small></h2>
+    <div class="card">
+      <h3>Quantum solver</h3>
+      <label>Question</label>
+      <textarea id="solveQ" rows="3" placeholder="write a 3-qubit GHZ circuit and verify it">write a 3-qubit GHZ circuit and verify it</textarea>
+      <div class="btnrow" style="align-items:center;flex-wrap:wrap">
+        <button class="btn primary" id="btnSolve">Solve (offline golden)</button>
+        <label class="chk" title="For custom/general questions with no built-in golden, call the configured model and verify the code actually runs. Supported-family questions always use the offline golden." style="display:inline-flex;align-items:center;gap:6px;margin:0 6px">
+          <input type="checkbox" id="chkOnline"> use online model for custom questions
+        </label>
+        <button class="btn" id="btnSelftest">Run full-bank self-test</button>
+        <button class="btn" id="btnSolveView" style="display:none">View verified code</button>
+      </div>
+      <div id="solveMeta"></div>
+      <div class="logview" id="solveLog">…</div>
+    </div>
+  </div>
+
+  <!-- ===================== QAS ===================== -->
+  <div class="section" id="s-qas">
+    <h2 class="pg">QAS 智能体 · 线路寻优 <small>circuit architecture search &amp; evaluation</small></h2>
+    <div class="card">
+      <h3>Circuit architecture search</h3>
+      <label>Experiment circuit</label>
+      <select id="qasExp">
+        <option value="bell">Bell</option><option value="ghz">GHZ</option>
+        <option value="qft">QFT</option><option value="grover">Grover</option>
+        <option value="optimization">Optimization</option><option value="ml">ML</option>
+      </select>
+      <div class="btnrow"><button class="btn primary" id="btnQas">Run QAS search</button></div>
+      <div id="qasMeta"></div>
+      <div id="qasCandidates"></div>
+      <div class="logview mt" id="qasLog">…</div>
+    </div>
+  </div>
+
+  <!-- ===================== HARDWARE ===================== -->
+  <div class="section" id="s-hw">
+    <h2 class="pg">Model hardware standard <small>ion-trap devices · vendor-neutral contract</small></h2>
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>Device catalog</h3>
+        <div id="hwDevices"></div>
+      </div>
+      <div class="card">
+        <h3>Execution tier distribution <span id="hwTotal"></span></h3>
+        <div class="chartwrap"><canvas id="tierCv" height="180"></canvas></div>
+        <div class="legend" id="tierLegend"></div>
+      </div>
+    </div>
+    <div class="card mt">
+      <h3>Job ledger</h3>
+      <div class="tablewrap"><table id="hwJobsTable">
+        <thead><tr><th>Device</th><th>Tier</th><th>Status</th><th>Top outcome</th><th>Shots</th><th>Run at</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <button class="btn mt" id="btnHwRefresh">Refresh jobs</button>
+    </div>
+  </div>
+
+  <!-- ===================== EXPERIENCE ===================== -->
+  <div class="section" id="s-exp">
+    <h2 class="pg">Experience · knowledge harvesting <small>append-only one-enter ledger</small></h2>
+    <div class="grid cols-4" id="expStats"></div>
+    <div class="grid cols-2 mt">
+      <div class="card">
+        <h3>Pass-rate distribution <span>(algo × sdk)</span></h3>
+        <div class="chartwrap"><canvas id="expCv" height="200"></canvas></div>
+        <div class="legend" id="expLegend"></div>
+      </div>
+      <div class="card">
+        <h3>Per-algorithm pass rates</h3>
+        <div id="expBars"></div>
+      </div>
+    </div>
+    <div class="card mt">
+      <h3>Detailed breakdown</h3>
+      <div class="tablewrap"><table id="expTable">
+        <thead><tr><th>Algorithm</th><th>SDK</th><th>Pass</th><th>Total</th><th>Rate</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ===================== TESTS ===================== -->
+  <div class="section" id="s-tests">
+    <h2 class="pg">Fully test the harness <small>complete campaign, live verdicts</small></h2>
+    <div class="card">
+      <h3>Run the complete test campaign</h3>
+      <p class="dim">Compile check · one-enter guarantee · QAS · experience · report-gen ·
+        ion-trap hardware · solve self-test · validator bench · six-experiment real orchestrator.</p>
+      <div class="btnrow">
+        <button class="btn primary" id="btnTests">Run full test suite</button>
+        <label class="flex" style="gap:6px"><input type="checkbox" id="chkLive"> include LIVE endpoint tests</label>
+      </div>
+      <div class="flex"><span class="dim" id="testCount"></span></div>
+      <div class="logview mt" id="testLog">…</div>
+      <div class="tablewrap mt"><table id="testTable">
+        <thead><tr><th>Suite</th><th>Verdict</th><th>rc</th></tr></thead><tbody></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<!-- code modal -->
+<div class="modal" id="codeModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalTitle">Verified code</h3>
+      <button class="btn mini" id="modalCopy" aria-label="copy code">⧉ Copy</button>
+      <button class="modal-close" id="modalClose" aria-label="close">✕</button></div>
+    <pre class="codeview" id="modalCode"></pre>
+  </div>
+</div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+let _codeCache=null;
+let _qasmCache=[]; // declared here (strict mode: assigning an undeclared var throws)
+function toast(msg,err=false){const t=$('#toast');t.textContent=msg;t.className=err?'err':'';
+  t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),3000);}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtT(ts){if(!ts)return '—';try{return new Date(ts*1000).toLocaleString()}catch{return ts}}
+function guarded(label,fn){try{const r=fn();return r}catch(e){console.warn(label,e);toast(label+': '+e.message,true);return null}}
+async function api(path,body){const o={headers:{'Content-Type':'application/json'}};
+  if(body){o.method='POST';o.body=JSON.stringify(body)}const r=await fetch(path,o);
+  if(!r.ok){let m='HTTP '+r.status;try{const j=await r.json();if(j.error)m=j.error}catch(_){};throw new Error(m)}
+  return r.json();}
+
+/* ---------------- tabs ---------------- */
+function activateTab(name){
+  $$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.s===name));
+  $$('.section').forEach(x=>x.classList.toggle('active',x.id==='s-'+name));
+  // refresh data + redraw charts that may have been skipped while hidden
+  if(name==='status')loadStatus();
+  if(name==='hw')loadHw();
+  if(name==='exp')loadExp();
+}
+$$('.tab').forEach(t=>t.onclick=()=>activateTab(t.dataset.s));
+
+/* ---------------- code modal ---------------- */
+function openCode(code,title){if(code==null)return;_codeCache=code;
+  $('#modalTitle').textContent=title||'Verified code';
+  let html='';const lines=String(code).split('\n');
+  html=lines.map((l,i)=>`<span class="ln"><span class="gutter">${String(i+1).padStart(2,'0')}</span>${esc(l)||' '}</span>`).join('');
+  $('#modalCode').innerHTML=html; $('#codeModal').classList.add('show');}
+function closeCode(){$('#codeModal').classList.remove('show');}
+function copyCode(){if(_codeCache==null)return;
+  const text=String(_codeCache);
+  const done=()=>toast('code copied to clipboard ✓');
+  const fail=()=>toast('clipboard unavailable',true);
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>{fallbackCopy(text,done,fail)});
+  }else{fallbackCopy(text,done,fail)}}
+function fallbackCopy(text,done,fail){
+  try{const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    const ok=document.execCommand('copy');document.body.removeChild(ta);
+    ok?done():fail();
+  }catch(_){fail()}}
+$('#modalClose').onclick=closeCode;
+$('#modalCopy').onclick=copyCode;
+$('#codeModal').addEventListener('click',e=>{if(e.target.id==='codeModal')closeCode();});
+
+/* ---------------- particle background ---------------- */
+(function(){const cv=$('#particles');if(!cv)return;const ctx=cv.getContext('2d');
+  let w,h,pts=[];
+  function resize(){w=cv.width=innerWidth;h=cv.height=innerHeight;
+    const n=Math.min(70,Math.floor(w*h/26000));pts=Array.from({length:n},()=>({
+      x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+.4,
+      vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,
+      c:Math.random()>.5}));}
+  let raf=0,running=true;
+  function frame(){if(!running)return;
+    ctx.clearRect(0,0,w,h);
+    for(const p of pts){p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>w)p.vx*=-1; if(p.y<0||p.y>h)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fillStyle=p.c?'rgba(108,140,255,.5)':'rgba(79,227,212,.5)';
+      ctx.fill();}
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const a=pts[i],b=pts[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
+      if(d<120){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(108,140,255,${(1-d/120)*.22})`;ctx.lineWidth=1;ctx.stroke();}}
+    raf=requestAnimationFrame(frame);}
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){running=false;cancelAnimationFrame(raf)}
+    else if(!running){running=true;frame();}});
+  addEventListener('resize',resize);resize();frame();})();
+
+/* ---------------- tiny chart renderers ---------------- */
+const PALETTE=['#6c8cff','#b06cff','#4fe3d4','#ffb454','#ff6bb6','#3ddc97','#ff6b6b','#9aa3cf'];
+// Return usable [W,H,dpr,ctx] or null if the canvas has no visible size
+// (e.g. its section is hidden via display:none). Charts must never draw on a
+// zero-size canvas: arc() with a negative radius throws IndexSizeError.
+function canvasSize(cv){if(!cv||!cv.getContext)return null;
+  const rect=cv.getBoundingClientRect();
+  if(!rect.width||!rect.height)return null;
+  const dpr=window.devicePixelRatio||1;
+  return {W:rect.width,H:rect.height,dpr,ctx:cv.getContext('2d')};}
+// Draw a donut chart. Center shows data[0] as a % of the total (the primary
+// metric — e.g. pass rate for a benchmark split). Pass an explicit
+// centerLabel to override the default 'overall' caption.
+// Draw a donut chart. The two calls that use it are:
+//   * pass-rate split   -> data=[passes, fails],  center = passes/Total %
+//   * hardware tiers    -> data=[c0,c1,...],      center = total jobs
+// So the centre text is supplied explicitly by each caller via opts.
+function donut(cv,data,labels,opts){
+  opts=opts||{};
+  const cs=canvasSize(cv);if(!cs)return;
+  const {W,H,dpr,ctx}=cs;
+  cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
+  const total=data.reduce((a,b)=>a+b,0);
+  const cx=W/2,cy=H/2,rad=Math.min(W,H)/2-6,tw=Math.max(14,rad*.26);
+  let a0=-Math.PI/2;
+  if(total>0){
+    data.forEach((v,i)=>{const a1=a0+(v/total)*2*Math.PI;
+      ctx.beginPath();ctx.arc(cx,cy,rad,a0,a1);ctx.arc(cx,cy,rad-tw,a1,a0,true);
+      ctx.closePath();ctx.fillStyle=PALETTE[i%PALETTE.length];ctx.fill();a0=a1;});
+  }
+  // when no data yet, still draw a faint empty skeleton ring so the card has
+  // a defined shape instead of a floating caption.
+  if(total===0){
+    ctx.beginPath();ctx.arc(cx,cy,rad,0,7);ctx.arc(cx,cy,rad-tw,7,0,true);
+    ctx.closePath();ctx.fillStyle='rgba(255,255,255,.03)';ctx.fill();
+  }
+  ctx.fillStyle='#eef1ff';ctx.font='700 18px Inter,sans-serif';ctx.textAlign='center';
+  ctx.fillText(String(opts.centerValue!==undefined?opts.centerValue:total),cx,cy+2);
+  ctx.fillStyle='#6b74a3';ctx.font='600 10px Inter,sans-serif';
+  ctx.fillText(opts.centerLabel||'overall',cx,cy+18);
+}
+function bars(cv,items){const cs=canvasSize(cv);if(!cs)return;
+  const {W,H,dpr,ctx}=cs;
+  cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
+  if(!items.length){ctx.fillStyle='#6b74a3';ctx.font='12px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText('no data yet',W/2,H/2);return;}
+  const max=Math.max(...items.map(x=>x.val),1);const pad=28;
+  const bw=(W-pad*2)/Math.max(items.length,1);const bh=H-18-12;
+  items.forEach((it,i)=>{const x=pad+i*bw+ bw*.12, yv=(it.val/max)*bh;
+    ctx.fillStyle=PALETTE[it.pal??(i%PALETTE.length)];
+    const g=ctx.createLinearGradient(0,H-18-yv,0,H-18);
+    g.addColorStop(0,PALETTE[it.pal??(i%PALETTE.length)]);
+    g.addColorStop(1,'rgba(108,140,255,.15)');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.roundRect?ctx.roundRect(x,H-18-yv,bw*.76,yv,4):ctx.fillRect(x,H-18-yv,bw*.76,yv);ctx.fill();
+    ctx.fillStyle='#9aa3cf';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';
+    ctx.save();ctx.translate(x+bw*.38,H-8);ctx.fillText(String(it.label||''),0,0);ctx.restore();});
+}
+function spark(cv,data){const cs=canvasSize(cv);if(!cs)return;
+  const {W,H,dpr,ctx}=cs;
+  cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
+  if(!data||data.length<2){ctx.fillStyle='#6b74a3';ctx.font='12px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText('trend building…',W/2,H/2);return;}
+  const max=Math.max(...data,0.0001),min=Math.min(...data),pad=8;
+  const step=W/(data.length-1);
+  ctx.beginPath();
+  data.forEach((v,i)=>{const x=i*step,y=pad+(H-pad*2)*(1-(v-min)/(max-min||1));
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.strokeStyle='#4fe3d4';ctx.lineWidth=2;ctx.stroke();
+  // fill
+  ctx.lineTo(W,pad+H);ctx.lineTo(0,pad+H);ctx.closePath();
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(79,227,212,.25)');g.addColorStop(1,'rgba(79,227,212,0)');
+  ctx.fillStyle=g;ctx.fill();
+}
+
+/* ---------------- STATUS ---------------- */
+async function loadStatus(){
+  const d=await guarded('status',()=>api('/api/status'));if(!d)return;
+  $('#pyver').textContent='python '+d.python;
+  const sdk=d.harness_ready||{};
+  $('#modprobe').innerHTML=['qiskit','pennylane','cirq'].map(m=>`<b>${m}</b> ${sdk[m]?'✓':'✗'}`).join(' · ');
+  const b=d.bench||{};
+  const rate=b.rate!=null?(b.rate*100).toFixed(1)+'%':'—';
+  $('#statusStats').innerHTML=[
+    stat('🧮',d.runs_total||0,'benchmark runs','validator harness'),
+    stat('🎯',rate,'validator pass rate','cyan','target ≥ 50%'),
+    stat('🪙',d.onetimepass_total||0,'solver goldens','one-enter bank'),
+    stat('🛰️',d.jobs_total||0,'hardware jobs','jobs.jsonl ledger'),
+  ].join('');
+  $('#sdkProbe').innerHTML=['qiskit','pennylane','cirq'].map(k=>`
+    <span class="chip silent ${sdk[k]?'active':''}">${k} ${sdk[k]?'✓':'✗'}</span>`).join('')+
+    (sdk&&sdk.qiskit?'':'<span class="dim">(qiskit required for orchestrator/QAS)</span>');
+  $('#reportsTable tbody').innerHTML=(d.reports&&d.reports.length)?d.reports.map(r=>`
+    <tr><td class="mono">📄 ${esc(r.name)}</td><td>${fmtT(r.mtime)}</td></tr>`).join('')
+    :'<tr><td colspan="2" class="dim">no reports yet — run the orchestrator</td></tr>';
+  $('#benchSummary').innerHTML=`<span class="chip silent active">passes: <b>${b.passes??0}</b></span>
+    <span class="chip silent">total: <b>${b.total??0}</b></span>
+    <span class="chip silent">rate: <b>${rate}</b></span>`;
+  drawStatusCharts(d);
+}
+function drawStatusCharts(d){
+  const b=d.bench||{};
+  const tp=b.passes||0,tot=b.total||0,tn=tot-tp;
+  const rate=(tot>0&&b.rate!=null)?Math.round((b.rate)*100)+'%':(tot>0?Math.round(tp/tot*100)+'%':'—');
+  donut($('#donutCv'),[tp,tn],['pass','fail'],
+        {centerValue:rate, centerLabel:'pass rate'});
+  $('#donutLegend').innerHTML=`<span class="k"><span class="sw" style="background:#4fe3d4"></span>pass (${tp})</span>
+    <span class="k"><span class="sw" style="background:#ff6b6b"></span>fail (${tn})</span>
+    <span class="k"><span class="sw" style="background:#6c8cff"></span>rate (${b.rate!=null?(b.rate*100).toFixed(1):'—'}%)</span>`;
+  api('/api/charts').then(cd=>{
+    const hist=cd&&cd.bench_history||[];
+    spark($('#lineCv'),(hist||[]).map(x=>x.rate));
+    const sum=hist.reduce((a,x)=>a+x.pass,0),tot=hist.reduce((a,x)=>a+x.total,0);
+    $('#lineNote').textContent=hist.length?`${sum}/${tot} green across ${hist.length} buckets`:'no history yet';
+  }).catch(()=>{});
+}
+function stat(ico,num,label,cls='',sub){return `<div class="card"><div class="stat">
+  <div class="ico">${ico}</div><div class="num ${cls}">${num}</div>
+  <div class="lbl">${label}</div>${sub?`<div class="sub">${sub}</div>`:''}</div></div>`;}
+window._busyBtn=(btn,b)=>{if(b){btn.setAttribute('data-old',btn.innerHTML);btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span> working…'}else{btn.disabled=false;
+  btn.innerHTML=btn.getAttribute('data-old')||btn.innerHTML;btn.removeAttribute('data-old')}};
+
+/* ---------------- BENCH ---------------- */
+async function runBench(){const btn=$('#btnBench');_busyBtn(btn,true);
+  try{const r=await api('/api/bench/run');const out=r.result&&r.result.output||'';
+    $('#benchLog').textContent=out;
+    const m=(out.match(/PASS RATE: ([0-9]+)\/([0-9]+) \(([0-9.]+)%\)/)||[]);
+    if(m.length)toast('bench done: '+m[1]+'/'+m[2]+' ('+m[3]+'%)');else toast('bench finished',!r.ok);
+    await loadStatus();
+  }catch(e){toast('bench failed: '+e.message,true);$('#benchLog').textContent='error: '+e.message}
+  _busyBtn(btn,false);}
+
+/* ---------------- ORCHESTRATOR ---------------- */
+async function loadOrchLogs(){try{const d=await api('/api/orchestrator/logs');
+  const sel=$('#logSelect');sel.innerHTML=(d||[]).map(l=>`<option value="${esc(l.name)}">${esc(l.name)} (${l.lines})</option>`).join('');
+}catch(e){}}
+async function runOrch(){const exp=$('#orchExp').value;
+  const t=$('#orchLog');t.textContent='running '+exp+' chain (executes real code + ion-trap emulator)…';
+  _busyBtn($('#btnOrch'),true);
+  try{const r=await api('/api/orchestrator/run',{experiment:exp});const res=r.result||{};
+    if(res.stdout)t.textContent=res.stdout+(res.stderr?'\n[stderr]\n'+res.stderr:'');
+    renderOrchSummary(res.summary);
+    toast(res.summary&&res.summary.autonomous_complete?'autonomous complete ✓':'orchestrator rc='+res.rc,
+      !(res.summary&&res.summary.autonomous_complete));
+    await loadStatus();await loadOrchLogs();
+  }catch(e){toast('orch failed: '+e.message,true);t.textContent='error: '+e.message}
+  _busyBtn($('#btnOrch'),false);}
+function renderOrchSummary(s){
+  if(!s){$('#orchSummaryCards').innerHTML='';return}
+  const complete=s.autonomous_complete?'<span class="badge pass">✓ complete</span>':'<span class="badge fail">✗ incomplete</span>';
+  const cov=s.skill_coverage!=null?Math.round(s.skill_coverage*100)+'%':'—';
+  const ticks=Array.isArray(s.chain)
+    ?`<div class="tickrow">${s.chain.map((c,i)=>`<span class="tick ${i< (s.skills_used||0)?'on':'off'}" title="${esc(c)}"></span>`).join('')}</div>`
+    :'';
+  let hw='';
+  if(s.hardware)hw=`<span class="chip silent">🛰️ ${esc(s.hardware.device||'—')} · ${esc(s.hardware.tier||'—')} · ${esc(s.hardware.status||'—')}</span>`;
+  $('#orchSummaryCards').innerHTML=`<div class="grid cols-2 mt">
+    <div class="card"><h3>${esc(s.experiment||'')} chain — ${complete}</h3>
+      <div class="flex" style="flex-wrap:wrap;gap:10px">
+        <span class="chip silent">⚓ autonomous: <b>${s.autonomous_complete?'yes':'no'}</b></span>
+        <span class="chip silent">🧩 skills: <b>${s.skills_used??0}/${s.skills_total??0}</b> (${cov})</span>
+        <span class="chip silent">📝 log entries: <b>${s.log_entries??0}</b></span>
+        <span class="chip silent">⚠ anomalies: <b>${s.anomalies??0}</b></span>
+        ${hw}</div>
+      ${ticks}
+      ${s.report_artifact?`<p class="dim mt">📄 report: <span class="mono">${esc(s.report_artifact)}</span></p>`:''}
+    </div></div>`;
+}
+async function doReplay(){const name=$('#logSelect').value||$('#logPath').value.trim();
+  if(!name){toast('choose a log',true);return}
+  $('.tickrow')&&0;const r=await api('/api/orchestrator/replay',{log:name});
+  const out=(r.result&&(r.result.output||r.result.error))||r.error;
+  $('#replayView').textContent=out||'(empty)';}
+
+/* ---------------- SOLVER ---------------- */
+async function runSolve(){const q=$('#solveQ').value;if(!q){toast('enter a question',true);return}
+  const online=$('#chkOnline').checked;
+  _busyBtn($('#btnSolve'),true);$('#solveLog').textContent=(online?'online (model-backed) solve…':'offline golden solve…');
+  $('#btnSolveView').style.display='none';$('#solveMeta').innerHTML='';
+  try{const r=await api('/api/solver/solve',{question:q,online});const res=r.result||{};
+    if(res.error){$('#solveLog').textContent='error: '+res.error;toast(res.error,true);_busyBtn($('#btnSolve'),false);return}
+    const rr=res.result||{};const ver=rr.verification||{};
+    const ok=rr.ok||(ver&&ver.pass)||false;
+    let txt='QUESTION     : '+esc(rr.question||q)+'\n';
+    txt+='MODE         : '+esc(rr.solve_mode||(online?'online':'offline golden'))+'\n';
+    txt+='ALGORITHM    : '+(rr.algorithm||'—')+'\n';
+    txt+='ATTEMPTS     : '+(rr.attempts??'—')+'\n';
+    txt+='VERIFICATION : '+(ok?'PASS ✓':'FAIL')+'\n';
+    if(rr.stage)txt+='STAGE        : '+esc(rr.stage)+'\n';
+    if(rr.detail)txt+='REASON       : '+esc(rr.detail)+'\n';
+    if(rr.probs)txt+='MEASURED     : '+JSON.stringify(rr.probs)+'\n';
+    txt+='\n──── VERIFIED CODE ────\n'+esc(rr.code||'(none)');
+    $('#solveLog').innerHTML=txt;
+    if(rr.code){_codeCache=rr.code;$('#btnSolveView').style.display='';$('#solveMeta').innerHTML=`
+      <div class="flex mt" style="gap:8px"><span class="badge ${ok?'pass':'fail'}">${ok?'PASS ✓':'FAIL'}</span>
+      <span class="chip silent">${esc(rr.solve_mode||(online?'online':'offline golden'))}</span>
+      <span class="chip silent">${esc(rr.algorithm||'—')}</span><span class="chip silent">attempts: ${rr.attempts??'—'}</span></div>`;}
+    else if(rr.detail){$('#solveMeta').innerHTML=`
+      <div class="flex mt" style="gap:8px"><span class="badge fail">FAIL</span>
+      <span class="chip silent">${esc(rr.detail)}</span></div>`; }
+    else{$('#solveMeta').innerHTML='' }
+    toast(ok?'solved ✓':(rr.detail?'could not solve: '+rr.detail:'could not solve'), !ok);
+  }catch(e){toast('solve failed: '+e.message,true);$('#solveLog').textContent='error: '+e.message}
+  _busyBtn($('#btnSolve'),false);}
+async function runSelftest(){_busyBtn($('#btnSelftest'),true);$('#solveLog').textContent='running full-bank self-test (offline)…';
+  try{const r=await api('/api/solver/selftest');$('#solveLog').textContent=(r.result&&r.result.output)||'';toast('self-test rc='+(r.result&&r.result.rc));}
+  catch(e){toast(e.message,true)}_busyBtn($('#btnSelftest'),false);}
+
+/* ---------------- QAS ---------------- */
+async function runQas(){const exp=$('#qasExp').value;_busyBtn($('#btnQas'),true);
+  $('#qasLog').textContent='running QAS search on '+exp+' …';$('#qasMeta').innerHTML='';$('#qasCandidates').innerHTML='';
+  try{const r=await api('/api/qas/run',{experiment:exp});const res=r.result||{};
+    if(!res.result){$('#qasLog').textContent=res.error||'qas failed';toast('qas failed',true);return}
+    const q=res.result;const cands=Array.isArray(q.candidates)?q.candidates:[q.selected].filter(Boolean);
+    const selName=q.selected&&(q.selected.name||q.selected_name);
+    $('#qasMeta').innerHTML=`<div class="flex mt" style="gap:8px">
+      <span class="badge pass">selected: <b>${esc(selName||'—')}</b></span>
+      <span class="chip silent">depth: <b>${q.selected?.depth ?? '—'}</b></span>
+      <span class="chip silent">fidelity: <b>${q.selected&&q.selected.fidelity!=null?q.selected.fidelity:'—'}</b></span></div>`;
+    _qasmCache=[];
+    $('#qasCandidates').innerHTML=`<div class="candgrid">${cands.map((c,ci)=>{
+      const fid=c.fidelity!=null?c.fidelity:(c.fid!=null?c.fid:'—');
+      _qasmCache.push(c.qasm||null);
+      const hasQasm=c.qasm!=null;
+      return `<div class="cand ${c.name===selName?'sel':''}">
+        <div class="cn">${esc(c.name||'—')}<span class="badge ${c.satisfies?'pass':'fail'}">${c.satisfies?'✓':'✗'}</span></div>
+        <div class="meta"><div>depth: ${c.depth??'—'} · 2Q: ${c.n2q??c['2q']??'—'}</div>
+        <div>fidelity: ${fid}</div>${hasQasm?`<button class="btn" style="margin-top:8px;padding:5px 10px;font-size:11px" data-qasm="${ci}">view QASM</button>`:''}</div>
+      </div>`;}).join('')}</div>`;
+    // delegate QASM-view clicks safely (no inline JS with embedded code)
+    $('#qasCandidates').querySelectorAll('button[data-qasm]').forEach(b=>{
+      b.addEventListener('click',()=>{const q=_qasmCache[+b.dataset.qasm];if(q!=null)openCode(q,'OPENQASM');});
+    });
+    $('#qasLog').textContent=JSON.stringify(q,null,2);
+    toast('QAS search done');
+  }catch(e){toast('qas failed: '+e.message,true);$('#qasLog').textContent='error: '+e.message}
+  _busyBtn($('#btnQas'),false);}
+/* ---------------- HARDWARE ---------------- */
+async function loadHw(){try{const d=await api('/api/hardware/devices');
+  $('#hwDevices').innerHTML=(d.devices||[]).map(dev=>`
+    <div class="chip silent"><b>${esc(dev.device_id)}</b>
+      <span class="dim">${dev.num_qubits}q · natives: ${(dev.native_gates||[]).join(',')} · ${(dev.tiers||[]).join('/')}</span></div>`).join('')
+    ||'<span class="dim">no devices</span>'+(d.error?'<span class="dim" style="color:var(--red)">'+esc(d.error)+'</span>':'');
+  const j=await api('/api/hardware/jobs?limit=60');$('#hwTotal').textContent='· '+j.total+' jobs total';
+  // tier distribution chart (from charts endpoint for full counts)
+  const cd=await api('/api/charts');
+  const tiers=cd&&cd.hardware_tiers||{};const tk=Object.keys(tiers);
+  const tierVals=tk.map(k=>tiers[k]);
+  donut($('#tierCv'),tierVals,tk,
+        {centerValue:j.total, centerLabel:'jobs total'});
+  $('#tierLegend').innerHTML=tk.map((k,i)=>`<span class="k"><span class="sw" style="background:${PALETTE[i%PALETTE.length]}"></span>${esc(k)} (${tiers[k]})</span>`).join('')||'<span class="dim">no jobs</span>';
+  $('#hwJobsTable tbody').innerHTML=(j.jobs||[]).map(x=>`<tr>
+    <td class="mono">${esc(x.device_id)}</td>
+    <td><span class="badge ${x.tier==='qpu'?'fail':(x.tier==='emulator'?'pass':'info')}">${esc(x.tier||'—')}</span></td>
+    <td><span class="badge ${x.status==='complete'?'pass':'fail'}">${esc(x.status||'—')}</span></td>
+    <td class="mono">${x.counts_top!=null?esc(String(x.counts_top)):'—'}</td>
+    <td>${x.shots??'—'}</td>
+    <td class="dim">${x._epoch?fmtT(x._epoch):'—'}</td></tr>`).join('')
+    ||'<tr><td colspan="6" class="dim">no jobs</td></tr>';
+}catch(e){toast('hardware load failed: '+e.message,true)}}
+
+/* ---------------- EXPERIENCE ---------------- */
+async function loadExp(){try{const r=await api('/api/experience');if(r.error){$('#expStats').innerHTML='<div class="card">error</div>';return}
+  const s=r.stats||{};const tot=s.total||{};const tP=tot.pass||0,tF=tot.fail||0,tAll=tP+tF;
+  const groups=s.groups||{};
+  const rows=Object.entries(groups).map(([k,v])=>({k,pass:v.pass||0,fail:v.fail||0,all:(v.pass||0)+(v.fail||0)}))
+    .sort((a,b)=>b.all-a.all);
+  $('#expStats').innerHTML=[
+    stat('🗂️',tAll,'total samples','amber'),
+    stat('✅',tP,'passes','green'),
+    stat('📈',tAll?Math.round(tP/tAll*100)+'%':'—','pass rate','cyan',`${tF} failures`),
+    stat('🔑',rows.length,'(algo × sdk) keys','cyan'),
+  ].join('');
+  $('#expTable tbody').innerHTML=rows.map(({k,pass,all})=>{const rate=all?pass/all*100:0;
+    const [algo,sdk]=k.split('/');
+    return `<tr><td class="mono">${esc(algo)}</td><td>${esc(sdk||'—')}</td>
+      <td>${pass}</td><td>${all}</td>
+      <td><span class="badge ${rate>=50?'pass':'fail'}">${rate.toFixed(1)}%</span></td></tr>`;}).join('')
+    ||'<tr><td colspan="5" class="dim">no samples yet</td></tr>';
+  const max=Math.max(1,...rows.map(x=>x.all));
+  $('#expBars').innerHTML=rows.slice(0,8).map(({k,pass,all})=>`<div style="margin:8px 0">
+    <div class="flex"><span class="mono" style="width:200px;overflow:hidden;text-overflow:ellipsis">${esc(k)}</span>
+      <span class="dim">${pass}/${all} · ${all?Math.round(pass/all*100):0}%</span></div>
+    <div class="bar"><div style="width:${all?Math.round(all/max*100):0}%"></div></div></div>`).join('')
+    ||'<span class="dim">no data</span>';
+  // distribution bar chart of pass rates
+  const dist=rows.map((x,i)=>({label:x.k.split('/')[0],val:x.all,pal:i}));
+  bars($('#expCv'),dist);
+  $('#expLegend').innerHTML=rows.slice(0,8).map((x,i)=>`<span class="k"><span class="sw" style="background:${PALETTE[i%PALETTE.length]}"></span>${esc(x.k)}</span>`).join('');
+}catch(e){toast('experience load failed: '+e.message,true)}}
+
+/* ---------------- TESTS ---------------- */
+async function runTests(){_busyBtn($('#btnTests'),true);$('#testLog').textContent='running harness test campaign…';
+  const live=$('#chkLive').checked;$('#testTable tbody').innerHTML='';
+  try{const r=await api('/api/tests/run',{live});const res=r.result||{};
+    $('#testLog').textContent=(res.log||[]).join('\n')||'no output';
+    $('#testTable tbody').innerHTML=Object.entries(res.results||{}).map(([k,v])=>`<tr>
+      <td class="mono">${esc(k)}</td>
+      <td><span class="badge ${v.ok?'pass':'fail'}">${v.ok?'PASS':'FAIL'}</span></td>
+      <td>${v.rc}${v.complete!==undefined?(' · complete '+v.complete):''}</td></tr>`).join('');
+    $('#testCount').textContent='suites green: '+res.passed+'/'+res.total;
+    toast('test campaign finished: '+res.passed+'/'+res.total+' green', res.passed!==res.total);
+  }catch(e){toast('tests failed: '+e.message,true);$('#testLog').textContent='error: '+e.message}
+  _busyBtn($('#btnTests'),false);}
+
+/* ---------------- wire up ---------------- */
+$('#btnBench').onclick=runBench;
+$('#btnOrch').onclick=runOrch; $('#btnReporch').onclick=loadOrchLogs;
+$('#btnReplay').onclick=doReplay;
+$('#btnSolve').onclick=runSolve; $('#btnSelftest').onclick=runSelftest;
+$('#btnSolveView').onclick=()=>openCode(_codeCache,'Verified code');
+$('#btnQas').onclick=runQas;
+$('#btnHwRefresh').onclick=loadHw;
+$('#btnTests').onclick=runTests;
+
+loadStatus();loadOrchLogs();loadHw();loadExp();
+setInterval(()=>{if($('#s-status').classList.contains('active'))loadStatus();
+  if($('#s-hw').classList.contains('active'))loadHw();},15000);
+</script>
+</body>
+</html>

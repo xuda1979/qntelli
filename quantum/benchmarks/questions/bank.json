@@ -1,0 +1,195 @@
+{
+  "schema_version": "1.0",
+  "definition_of_pass": "FULL code, FIRST attempt, ALL parts correct (compile + correct result). One-time pass = no iterative fixing.",
+  "questions": [
+    {
+      "id": "bmk.bell",
+      "title": "Bell state preparation",
+      "sdk": "qiskit",
+      "prompt": "Write a complete Qiskit program that creates a Bell state on 2 qubits and measures counts. Verify P(00)=P(11)=0.5 on a simulator (4000 shots).",
+      "reference": {
+        "00": 0.5,
+        "11": 0.5
+      },
+      "tolerance": 0.08
+    },
+    {
+      "id": "bmk.ghz3",
+      "title": "3-qubit GHZ state",
+      "sdk": "qiskit",
+      "prompt": "Write a complete Qiskit program creating a 3-qubit GHZ state and measure. Verify P(000)=P(111)=0.5 on a simulator (4000 shots).",
+      "reference": {
+        "000": 0.5,
+        "111": 0.5
+      },
+      "tolerance": 0.08
+    },
+    {
+      "id": "bmk.qft3_uniform",
+      "title": "QFT on 3 qubits (uniform amplitudes)",
+      "sdk": "qiskit",
+      "prompt": "Write a complete Qiskit program implementing the 3-qubit Quantum Fourier Transform of |000> and return statevector probabilities. Verify all 8 basis states have probability 1/8.",
+      "reference": {
+        "000": 0.125,
+        "001": 0.125,
+        "010": 0.125,
+        "011": 0.125,
+        "100": 0.125,
+        "101": 0.125,
+        "110": 0.125,
+        "111": 0.125
+      },
+      "tolerance": 0.001
+    },
+    {
+      "id": "bmk.dj_balanced",
+      "title": "Deutsch-Jozsa (balanced, 3 qubits)",
+      "sdk": "qiskit",
+      "prompt": "Write a complete Qiskit program implementing the Deutsch-Jozsa algorithm for a BALANCED 3-qubit function (e.g. parity of x). The measurement result must be non-zero for balanced.",
+      "reference_condition": "balanced_measure_nonzero",
+      "tolerance": null
+    },
+    {
+      "id": "bmk.grover1",
+      "title": "Grover search (mark |101>, 3 qubits, 1 iteration)",
+      "sdk": "qiskit",
+      "prompt": "Write a complete Qiskit program implementing Grover's algorithm on 3 qubits marking |101> with one iteration. The top measured bitstring must be 101 with elevated probability (~0.78).",
+      "reference": {
+        "101": 0.78
+      },
+      "tolerance": 0.2
+    },
+    {
+      "id": "bmk.expectation_z",
+      "title": "Expectation <Z> on |+>",
+      "sdk": "qiskit",
+      "prompt": "Write a complete Qiskit program (EstimatorV2) computing the expectation value of Z on the |+> state after an H gate. The result must be approximately 0.",
+      "reference_condition": "expectation_abs_lt_0.1",
+      "tolerance": null
+    },
+    {
+      "id": "bmk.bell_pennylane",
+      "title": "Bell state (PennyLane)",
+      "sdk": "pennylane",
+      "prompt": "Write a complete PennyLane program creating a Bell state on 2 wires and sample PauliZ to get P(00)=P(11)=0.5. Print JSON probs.",
+      "reference": {
+        "00": 0.5,
+        "11": 0.5
+      },
+      "tolerance": 0.08
+    },
+    {
+      "id": "bmk.ghz_cirq",
+      "title": "GHZ (Cirq, 3 qubits)",
+      "sdk": "cirq",
+      "prompt": "Write a complete Cirq program creating a 3-qubit GHZ state, sample 4000 shots, verify P(000)=P(111)=0.5. Print JSON probs.",
+      "reference": {
+        "000": 0.5,
+        "111": 0.5
+      },
+      "tolerance": 0.08
+    },
+    {
+      "id": "bmk.bernstein_vazirani",
+      "title": "Bernstein-Vazirani secret recovery",
+      "prompt": "Write a complete Qiskit program implementing Bernstein-Vazirani with secret 101 on 3 data qubits. Measure and report the recovered secret bitstring as the most probable outcome (4000 shots).",
+      "reference": {
+        "secret": "101"
+      },
+      "sdk": "qiskit",
+      "tolerance": 0.0,
+      "reference_condition": "bv_secret"
+    },
+    {
+      "id": "bmk.swap_test",
+      "title": "Swap test equal states",
+      "prompt": "Write a complete Qiskit program running a swap test between two equal |+> states (3 qubits: ancilla + 2 data). Report the probability that the ancilla measures 1 (should be ~0 for equal states), 4000 shots.",
+      "reference": {
+        "prob1": 0.0
+      },
+      "sdk": "qiskit",
+      "tolerance": 0.06,
+      "reference_condition": "swap_equal"
+    },
+    {
+      "id": "bmk.qpe",
+      "title": "Quantum Phase Estimation",
+      "prompt": "Write a complete Qiskit program estimating the phase theta=0.125 of a unitary U with U|1>=exp(2*pi*i*theta)|1> using Quantum Phase Estimation with a 4-qubit phase register. Report the estimated theta in [0,1).",
+      "reference": {
+        "theta": 0.125
+      },
+      "sdk": "qiskit",
+      "tolerance": 0.05,
+      "reference_condition": "qpe_theta"
+    },
+    {
+      "id": "bmk.vqe",
+      "title": "VQE ground-state energy",
+      "prompt": "Write a complete Qiskit program using VQE to find the ground-state energy of the single-qubit Hamiltonian H = X. Report the converged energy as a float. (Exact ground-state energy is -1.)",
+      "reference": {
+        "energy": -1.0
+      },
+      "sdk": "qiskit",
+      "tolerance": 0.25,
+      "reference_condition": "vqe_energy"
+    },
+    {
+      "id": "bmk.bell_cirq",
+      "title": "Cirq Bell state",
+      "prompt": "Write a complete Cirq program creating a Bell state on 2 qubits and measure. Verify P(00)=P(11)=0.5 on Cirq Simulator (4000 reps).",
+      "reference": {
+        "00": 0.5,
+        "11": 0.5
+      },
+      "sdk": "cirq",
+      "tolerance": 0.08
+    },
+    {
+      "id": "bmk.ghz_pennylane",
+      "title": "PennyLane 3-qubit GHZ",
+      "prompt": "Write a complete PennyLane program creating a 3-qubit GHZ state on wires [0,1,2] (default.qubit, 4000 shots) and measure. Verify P(000)=P(111)=0.5.",
+      "reference": {
+        "000": 0.5,
+        "111": 0.5
+      },
+      "sdk": "pennylane",
+      "tolerance": 0.08
+    },
+    {
+      "id": "bmk.grover_011",
+      "title": "Grover |011> (3q)",
+      "prompt": "Grover search marking state |011> on 3 qubits; top measured state must be 011.",
+      "reference": {
+        "marked": "011"
+      },
+      "reference_condition": "grover_top_marked",
+      "tolerance": 0.08,
+      "sdk": "qiskit"
+    },
+    {
+      "id": "bmk.qft4_uniform",
+      "title": "4-qubit QFT of |0>",
+      "prompt": "QFT on 4 qubits starting from |0>: uniform superposition probabilities.",
+      "reference": {
+        "0000": 0.0625,
+        "0001": 0.0625,
+        "0010": 0.0625,
+        "0011": 0.0625,
+        "0100": 0.0625,
+        "0101": 0.0625,
+        "0110": 0.0625,
+        "0111": 0.0625,
+        "1000": 0.0625,
+        "1001": 0.0625,
+        "1010": 0.0625,
+        "1011": 0.0625,
+        "1100": 0.0625,
+        "1101": 0.0625,
+        "1110": 0.0625,
+        "1111": 0.0625
+      },
+      "tolerance": 0.05,
+      "sdk": "qiskit"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.build-venv/
+*.egg-info/
+
+# ---- Node / build artifacts ----
+node_modules/
+build/
+dist/
+
+# ---- Large compiled binaries (reproducible via build.sh) ----
+/qntelli
+/vendor/
+/bin/
+quant-stable-worker
+
+# ---- Runtime data / state / logs ----
+.remember/
+.claude/
+state_log.jsonl*
+quantum/experience/*.jsonl
+quantum/hardware/jobs.jsonl
+quantum/experience/*.json
+
+# ---- OS / editor ----
+.DS_Store
+*.swp
